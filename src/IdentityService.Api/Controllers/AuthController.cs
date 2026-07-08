@@ -1,4 +1,5 @@
 using IdentityService.Application.Common.Requests;
+using IdentityService.Application.Authentication.ChangePassword;
 using IdentityService.Application.Authentication.Login;
 using IdentityService.Application.Authentication.Logout;
 using IdentityService.Application.Authentication.Me;
@@ -51,12 +52,15 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("change-password")]
-    public IActionResult ChangePassword([FromBody] ChangePasswordRequest request)
-        => StatusCode(StatusCodes.Status501NotImplemented, new ProblemDetails
-        {
-            Title = "Authentication scaffold",
-            Detail = "Change password endpoint will be implemented in the next slice."
-        });
+    [Authorize]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(
+            new ChangePasswordCommand(request.CurrentPassword, request.NewPassword),
+            cancellationToken);
+
+        return NoContent();
+    }
 
     [HttpPost("logout")]
     public async Task<IActionResult> Logout([FromBody] RefreshSessionRequest request, CancellationToken cancellationToken)

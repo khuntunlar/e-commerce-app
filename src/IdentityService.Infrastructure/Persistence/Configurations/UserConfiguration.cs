@@ -18,14 +18,20 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.IsActive).IsRequired();
         builder.HasIndex(x => x.NormalizedEmail).IsUnique();
 
-        builder.HasMany<UserRole>("_roles")
+        builder.HasMany(x => x.Roles)
             .WithOne()
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(x => x.Roles)
+            .HasField("_roles")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.HasMany<RefreshToken>("_refreshTokens")
+        builder.HasMany(x => x.RefreshTokens)
             .WithOne()
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(x => x.RefreshTokens)
+            .HasField("_refreshTokens")
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }
