@@ -133,6 +133,14 @@ mysql --protocol=TCP -h 127.0.0.1 -P 3307 -ukhuntunlar -p ecommerce_with_dot_net
 = Show Table
 docker compose exec mysql mysql -ukhuntunlar -pkhuntunlar2024 ecommerce_with_dot_net \
   -e "SELECT * FROM Users;"
+  
+  = To confirm which database the API is using:
+  docker compose exec identity-api printenv ConnectionStrings__Identity
+  
+  
+  
+  = Check Local TCP
+  mysql --protocol=TCP -h 127.0.0.1 -P 3306 -ukhuntunlar -p ecommerce_with_dot_net
 ```
 
 Latest MySQL result:
@@ -299,3 +307,48 @@ curl -i -X POST http://localhost:5294/api/v1/auth/login \
 ```
 
 Result: `200 OK`.
+
+## Compose MySQL Modes For Learning
+
+Added support for both Docker MySQL and local machine MySQL.
+
+Files:
+- `docker-compose.yml`: default Docker MySQL mode.
+- `docker-compose.local-mysql.yml`: override for local machine MySQL/phpMyAdmin storage.
+- `docker-compose.mysql-learning.yml`: commented examples only, not for direct running.
+
+Validate default Docker MySQL mode:
+
+```bash
+docker compose config --quiet
+```
+
+Run default Docker MySQL mode:
+
+```bash
+docker compose up --build
+```
+
+Validate local MySQL override mode:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local-mysql.yml config --quiet
+```
+
+Run local MySQL override mode:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local-mysql.yml up --build
+```
+
+Local MySQL mode changes the API connection string to:
+
+```text
+Server=host.docker.internal;Port=3306;Database=ecommerce_with_dot_net;User=khuntunlar;Password=<mysql-password>;
+```
+
+Docker MySQL mode keeps the API connection string as:
+
+```text
+Server=mysql;Port=3306;Database=ecommerce_with_dot_net;User=khuntunlar;Password=<mysql-password>;
+```
