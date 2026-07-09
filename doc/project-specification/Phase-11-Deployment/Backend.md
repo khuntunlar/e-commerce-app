@@ -1,0 +1,1 @@
+Clean Architecture, EF Core, CQRS, validation, logging.

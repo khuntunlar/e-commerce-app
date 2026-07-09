@@ -7,6 +7,7 @@ public sealed class AuditLog : Entity
     public Guid? UserId { get; private set; }
     public string Action { get; private set; } = string.Empty;
     public string Metadata { get; private set; } = string.Empty;
+    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
     private AuditLog()
     {
@@ -21,7 +22,8 @@ public sealed class AuditLog : Entity
         {
             UserId = userId,
             Action = action.Trim(),
-            Metadata = metadata.Trim()
+            Metadata = metadata.Trim(),
+            CreatedAt = DateTime.UtcNow
         };
     }
 }

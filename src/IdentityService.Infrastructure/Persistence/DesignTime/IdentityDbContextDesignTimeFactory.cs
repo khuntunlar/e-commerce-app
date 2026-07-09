@@ -8,7 +8,7 @@ public sealed class IdentityDbContextDesignTimeFactory : IDesignTimeDbContextFac
     public IdentityDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<IdentityDbContext>();
-        var connectionString = "Server=localhost;Port=3306;Database=identity_service;User=root;Password=password;";
+        var connectionString = "Server=localhost;Port=3306;Database=ecommerce_with_dot_net;User=khuntunlar;Password=khuntunlar2024;";
         optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
         return new IdentityDbContext(optionsBuilder.Options);
     }
