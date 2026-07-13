@@ -3,17 +3,17 @@ services:
     image: mysql:8.4
     container_name: ecommerce-mysql
     environment:
-      MYSQL_DATABASE: ecommerce_with_dot_net
-      MYSQL_USER: khuntunlar
-      MYSQL_PASSWORD: khuntunlar2024
-      MYSQL_ROOT_PASSWORD: khuntunlar2024
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
       - "3307:3306"
     volumes:
       - ecommerce_mysql_data:/var/lib/mysql
       - ./src/IdentityService.Infrastructure/Persistence/Migrations/202607030001_InitialIdentitySchema.mysql.sql:/docker-entrypoint-initdb.d/001-initial-identity.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ukhuntunlar", "-pkhuntunlar2024"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$${MYSQL_USER} -p$${MYSQL_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -26,11 +26,11 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Container
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Identity: Server=mysql;Port=3306;Database=ecommerce_with_dot_net;User=khuntunlar;Password=khuntunlar2024;
-      Jwt__Issuer: IdentityService
-      Jwt__Audience: EcommercePlatform
-      Jwt__SigningKey: development-signing-key-please-change
-      Cors__AllowedOrigins__0: http://localhost:3000
+      ConnectionStrings__Identity: Server=mysql;Port=3306;Database=${MYSQL_DATABASE};User=${MYSQL_USER};Password=${IDENTITY_DB_PASSWORD};
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY}
+      Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN}
     ports:
       - "5294:8080"
     depends_on:
@@ -42,10 +42,11 @@ services:
       context: .
       dockerfile: src/Ecommerce.Web/Dockerfile
       args:
-        NEXT_PUBLIC_IDENTITY_API_URL: http://localhost:5294
+        NEXT_PUBLIC_IDENTITY_API_URL: ${IDENTITY_PUBLIC_URL}
     container_name: ecommerce-web
     environment:
-      NEXT_PUBLIC_IDENTITY_API_URL: http://localhost:5294
+      IDENTITY_API_URL: http://identity-api:8080
+      NEXT_PUBLIC_IDENTITY_API_URL: ${IDENTITY_PUBLIC_URL}
     ports:
       - "3000:3000"
     depends_on:

@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { AuthCard } from "@/components/AuthCard";
 import { login } from "@/lib/auth-api";
-import { saveSession } from "@/lib/auth-store";
 
 function LoginForm() {
   const router = useRouter();
@@ -22,11 +21,10 @@ function LoginForm() {
     const formData = new FormData(event.currentTarget);
 
     try {
-      const session = await login({
+      await login({
         email: String(formData.get("email")),
         password: String(formData.get("password"))
       });
-      saveSession(session);
       router.push(next);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Login failed");

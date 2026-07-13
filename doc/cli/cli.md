@@ -352,3 +352,113 @@ Docker MySQL mode keeps the API connection string as:
 ```text
 Server=mysql;Port=3306;Database=ecommerce_with_dot_net;User=khuntunlar;Password=<mysql-password>;
 ```
+
+## Phase 01 Hardening Completion
+
+Implemented remaining Phase-1 hardening items:
+- OpenAPI JSON and Swagger UI page without adding a NuGet dependency.
+- Admin role seed and role assignment endpoint.
+- Forgot password and reset password backend/frontend flow.
+- Rate limiting for login, refresh, forgot-password, and reset-password.
+- Audit logs for register, login, refresh, logout, change-password, reset-password, and role assignment.
+- Frontend session auth through Next.js API routes with HttpOnly cookies instead of localStorage.
+- Frontend smoke tests for auth pages/session routes.
+- Production secret cleanup through `.env` and Compose environment variables.
+
+Build and backend tests:
+
+```bash
+dotnet test IdentityService.slnx -c Release
+```
+
+Latest result:
+- API tests: `1` passed.
+- Unit tests: `5` passed.
+- Integration tests: `3` passed.
+
+Frontend build and tests:
+
+```bash
+cd src/Ecommerce.Web
+npm run build
+npm test
+```
+
+Latest result:
+- Next.js production build passed.
+- Frontend auth/session tests: `4` passed.
+
+Compose validation:
+
+```bash
+docker compose config --quiet
+```
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local-mysql.yml config --quiet
+```
+
+Latest result:
+- Both Compose modes validate.
+
+Rebuild running stack:
+
+```bash
+docker compose up -d --build
+```
+
+Apply Phase-1 hardening SQL to Docker MySQL:
+
+```bash
+docker compose exec -T mysql mysql -u${MYSQL_USER:-khuntunlar} -p${MYSQL_PASSWORD:-khuntunlar2024} ${MYSQL_DATABASE:-ecommerce_with_dot_net} < src/IdentityService.Infrastructure/Persistence/Migrations/202607130001_Phase01Hardening.mysql.sql
+```
+
+Apply Phase-1 hardening SQL to local MySQL:
+
+```bash
+mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u${MYSQL_USER:-khuntunlar} -p${MYSQL_PASSWORD:-khuntunlar2024} ${MYSQL_DATABASE:-ecommerce_with_dot_net} < src/IdentityService.Infrastructure/Persistence/Migrations/202607130001_Phase01Hardening.mysql.sql
+```
+
+Verify hardening schema:
+
+```bash
+docker compose exec -T mysql mysql -u${MYSQL_USER:-khuntunlar} -p${MYSQL_PASSWORD:-khuntunlar2024} ${MYSQL_DATABASE:-ecommerce_with_dot_net} -e "SHOW TABLES LIKE 'PasswordResetTokens'; SELECT Name, NormalizedName FROM Roles ORDER BY Name;"
+```
+
+Latest result:
+- `PasswordResetTokens` exists.
+- `Admin` and `Customer` roles exist.
+
+Live forgot/reset password verification:
+
+```bash
+curl -X POST http://localhost:5294/api/v1/auth/register -H 'Content-Type: application/json' -d '{"displayName":"Phase1 Hardening","email":"phase1-hardening-<timestamp>@tun.shop","password":"admin12345"}'
+```
+
+Result: `201`.
+
+```bash
+curl -X POST http://localhost:5294/api/v1/auth/forgot-password -H 'Content-Type: application/json' -d '{"email":"phase1-hardening-<timestamp>@tun.shop"}'
+```
+
+Result: `200`, with development reset token.
+
+```bash
+curl -X POST http://localhost:5294/api/v1/auth/reset-password -H 'Content-Type: application/json' -d '{"email":"phase1-hardening-<timestamp>@tun.shop","resetToken":"<reset-token>","newPassword":"newpass12345"}'
+```
+
+Result: `204`.
+
+```bash
+curl -X POST http://localhost:5294/api/v1/auth/login -H 'Content-Type: application/json' -d '{"email":"phase1-hardening-<timestamp>@tun.shop","password":"newpass12345"}'
+```
+
+Result: `200`.
+
+OpenAPI verification:
+
+```bash
+curl http://localhost:5294/openapi/v1.json
+```
+
+Result: `200`, title `Identity Service API`.

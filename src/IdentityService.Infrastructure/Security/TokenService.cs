@@ -20,7 +20,7 @@ public sealed class TokenService : ITokenService
 
     public string CreateAccessToken(User user, IReadOnlyCollection<string> roles)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SigningKey"] ?? "development-signing-key-please-change"));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SigningKey"] ?? "7Xlcw53AYw6VmPpz0etfkX41+qiBJ4t14ZLQ5D/mSu1kQC0dc7rOt+JbMhOW/1Um"));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var claims = new List<Claim>
         {

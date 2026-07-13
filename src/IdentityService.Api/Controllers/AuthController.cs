@@ -1,15 +1,19 @@
 using IdentityService.Application.Common.Requests;
+using IdentityService.Application.Authentication.AssignRole;
 using IdentityService.Application.Authentication.ChangePassword;
+using IdentityService.Application.Authentication.ForgotPassword;
 using IdentityService.Application.Authentication.Login;
 using IdentityService.Application.Authentication.Logout;
 using IdentityService.Application.Authentication.Me;
 using IdentityService.Application.Authentication.Refresh;
 using IdentityService.Application.Authentication.Register;
+using IdentityService.Application.Authentication.ResetPassword;
 using IdentityService.Application.Common;
 using IdentityService.Application.Common.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace IdentityService.Api.Controllers;
 
@@ -35,6 +39,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("auth-sensitive")]
     public async Task<ActionResult<AuthSessionDto>> Login([FromBody] LoginUserRequest request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -45,6 +50,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
+    [EnableRateLimiting("auth-sensitive")]
     public async Task<ActionResult<AuthSessionDto>> Refresh([FromBody] RefreshSessionRequest request, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new RefreshSessionCommand(request.RefreshToken), cancellationToken);
@@ -75,5 +81,32 @@ public sealed class AuthController : ControllerBase
     {
         var result = await _mediator.Send(new GetCurrentUserQuery(), cancellationToken);
         return Ok(result);
+    }
+
+    [HttpPost("forgot-password")]
+    [EnableRateLimiting("auth-sensitive")]
+    public async Task<ActionResult<ForgotPasswordDto>> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new ForgotPasswordCommand(request.Email), cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPost("reset-password")]
+    [EnableRateLimiting("auth-sensitive")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(
+            new ResetPasswordCommand(request.Email, request.ResetToken, request.NewPassword),
+            cancellationToken);
+
+        return NoContent();
+    }
+
+    [HttpPost("roles/assign")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AssignRole([FromBody] AssignRoleRequest request, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new AssignRoleCommand(request.UserId, request.RoleName), cancellationToken);
+        return NoContent();
     }
 }

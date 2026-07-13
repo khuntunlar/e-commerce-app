@@ -17,5 +17,5 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-      ConnectionStrings__Identity: Server=host.docker.internal;Port=3306;Database=ecommerce_with_dot_net;User=khuntunlar;Password=khuntunlar2024;
+      ConnectionStrings__Identity: Server=host.docker.internal;Port=3306;Database=${MYSQL_DATABASE};User=${MYSQL_USER};Password=${IDENTITY_DB_PASSWORD};
     depends_on: !reset []
