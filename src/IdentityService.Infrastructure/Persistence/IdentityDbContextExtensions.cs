@@ -13,7 +13,7 @@ public static class IdentityDbContextExtensions
         IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("Identity")
-            ?? "Server=localhost;Port=3306;Database=identity_service;User=root;Password=password;";
+            ?? "Server=localhost;Port=3306;Database=ecommerce_with_dot_net;User=khuntunlar;Password=khuntunlar2024;";
 
         services.AddDbContext<IdentityDbContext>(options =>
             options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
@@ -21,6 +21,6 @@ public static class IdentityDbContextExtensions
         services.AddScoped<IIdentityContextFactory, IdentityDbContextFactory>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, HttpContextCurrentUserService>();
-        return services;
+        return services; 
     }
 }
