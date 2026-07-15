@@ -3,21 +3,15 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { logout } from "@/lib/auth-api";
-import { clearSession, readSession } from "@/lib/auth-store";
 
 export default function LogoutPage() {
   const [message, setMessage] = useState("Signing you out...");
 
   useEffect(() => {
-    const session = readSession();
-
     async function endSession() {
       try {
-        if (session?.refreshToken) {
-          await logout(session.refreshToken);
-        }
+        await logout();
       } finally {
-        clearSession();
         setMessage("You are signed out.");
       }
     }

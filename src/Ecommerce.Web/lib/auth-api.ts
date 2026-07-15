@@ -26,8 +26,10 @@ export type ChangePasswordRequest = {
   newPassword: string;
 };
 
-const identityApiUrl = process.env.NEXT_PUBLIC_IDENTITY_API_URL ?? "http://localhost:5294";
-const authBaseUrl = `${identityApiUrl.replace(/\/$/, "")}/api/v1/auth`;
+export type ForgotPasswordResponse = {
+  resetToken: string | null;
+  expiresInMinutes: number;
+};
 
 async function parseError(response: Response): Promise<string> {
   const fallback = `Request failed with status ${response.status}`;
@@ -53,7 +55,7 @@ async function parseError(response: Response): Promise<string> {
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${authBaseUrl}${path}`, {
+  const response = await fetch(`/api/auth${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -86,27 +88,33 @@ export function register(payload: RegisterRequest): Promise<AuthSession> {
   });
 }
 
-export function getCurrentUser(accessToken: string): Promise<AuthenticatedUser> {
-  return request<AuthenticatedUser>("/me", {
-    headers: {
-      Authorization: `Bearer ${accessToken}`
-    }
-  });
+export function getCurrentUser(): Promise<AuthenticatedUser> {
+  return request<AuthenticatedUser>("/me");
 }
 
-export function changePassword(accessToken: string, payload: ChangePasswordRequest): Promise<void> {
+export function changePassword(payload: ChangePasswordRequest): Promise<void> {
   return request<void>("/change-password", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`
-    },
     body: JSON.stringify(payload)
   });
 }
 
-export function logout(refreshToken: string): Promise<void> {
+export function logout(): Promise<void> {
   return request<void>("/logout", {
+    method: "POST"
+  });
+}
+
+export function forgotPassword(email: string): Promise<ForgotPasswordResponse> {
+  return request<ForgotPasswordResponse>("/forgot-password", {
     method: "POST",
-    body: JSON.stringify({ refreshToken })
+    body: JSON.stringify({ email })
+  });
+}
+
+export function resetPassword(email: string, resetToken: string, newPassword: string): Promise<void> {
+  return request<void>("/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ email, resetToken, newPassword })
   });
 }

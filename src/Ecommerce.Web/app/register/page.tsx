@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { AuthCard } from "@/components/AuthCard";
 import { register } from "@/lib/auth-api";
-import { saveSession } from "@/lib/auth-store";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -20,12 +19,11 @@ export default function RegisterPage() {
     const formData = new FormData(event.currentTarget);
 
     try {
-      const session = await register({
+      await register({
         displayName: String(formData.get("displayName")),
         email: String(formData.get("email")),
         password: String(formData.get("password"))
       });
-      saveSession(session);
       router.push("/account");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Registration failed");

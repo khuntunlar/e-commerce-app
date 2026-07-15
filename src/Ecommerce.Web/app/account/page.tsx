@@ -4,11 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { AuthenticatedUser, changePassword, getCurrentUser } from "@/lib/auth-api";
-import { clearSession, readSession } from "@/lib/auth-store";
 
 export default function AccountPage() {
   const router = useRouter();
-  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -16,28 +14,14 @@ export default function AccountPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const session = readSession();
-    if (!session) {
-      router.replace("/login?next=/account");
-      return;
-    }
-
-    setAccessToken(session.accessToken);
-    getCurrentUser(session.accessToken)
+    getCurrentUser()
       .then(setUser)
-      .catch(() => {
-        clearSession();
-        router.replace("/login?next=/account");
-      })
+      .catch(() => router.replace("/login?next=/account"))
       .finally(() => setIsLoading(false));
   }, [router]);
 
   async function onChangePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!accessToken) {
-      return;
-    }
-
     setStatus(null);
     setError(null);
     setIsSubmitting(true);
@@ -46,7 +30,7 @@ export default function AccountPage() {
     const formData = new FormData(form);
 
     try {
-      await changePassword(accessToken, {
+      await changePassword({
         currentPassword: String(formData.get("currentPassword")),
         newPassword: String(formData.get("newPassword"))
       });

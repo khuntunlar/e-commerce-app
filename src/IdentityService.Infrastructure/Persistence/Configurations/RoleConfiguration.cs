@@ -14,11 +14,18 @@ public sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.Property(x => x.NormalizedName).HasMaxLength(100).IsRequired();
         builder.HasIndex(x => x.NormalizedName).IsUnique();
 
-        builder.HasData(new
-        {
-            Id = IdentityRoleIds.Customer,
-            Name = "Customer",
-            NormalizedName = "CUSTOMER"
-        });
+        builder.HasData(
+            new
+            {
+                Id = IdentityRoleIds.Customer,
+                Name = "Customer",
+                NormalizedName = "CUSTOMER"
+            },
+            new
+            {
+                Id = IdentityRoleIds.Admin,
+                Name = "Admin",
+                NormalizedName = "ADMIN"
+            });
     }
 }

@@ -12,6 +12,7 @@ internal sealed class FakeIdentityDbContext : IIdentityDbContext
     private readonly List<Role> _roles = [];
     private readonly List<UserRole> _userRoles = [];
     private readonly List<RefreshToken> _refreshTokens = [];
+    private readonly List<PasswordResetToken> _passwordResetTokens = [];
     private readonly List<AuditLog> _auditLogs = [];
 
     public FakeIdentityDbContext()
@@ -20,6 +21,7 @@ internal sealed class FakeIdentityDbContext : IIdentityDbContext
         Roles = new FakeDbSet<Role>(_roles);
         UserRoles = new FakeDbSet<UserRole>(_userRoles);
         RefreshTokens = new FakeDbSet<RefreshToken>(_refreshTokens);
+        PasswordResetTokens = new FakeDbSet<PasswordResetToken>(_passwordResetTokens);
         AuditLogs = new FakeDbSet<AuditLog>(_auditLogs);
     }
 
@@ -27,6 +29,7 @@ internal sealed class FakeIdentityDbContext : IIdentityDbContext
     public DbSet<Role> Roles { get; }
     public DbSet<UserRole> UserRoles { get; }
     public DbSet<RefreshToken> RefreshTokens { get; }
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; }
     public DbSet<AuditLog> AuditLogs { get; }
 
     public IReadOnlyCollection<User> SavedUsers => _users;
