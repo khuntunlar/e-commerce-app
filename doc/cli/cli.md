@@ -462,3 +462,94 @@ curl http://localhost:5294/openapi/v1.json
 ```
 
 Result: `200`, title `Identity Service API`.
+
+## Phase 02 Catalog Service Start
+
+Decision:
+- Use database-per-service.
+- Identity Service database: `identity_service`.
+- Catalog Service database: `catalog_service`.
+
+Created Catalog Service solution and projects:
+
+```bash
+mkdir -p src/CatalogService.Domain/Common src/CatalogService.Domain/Catalog src/CatalogService.Application/Abstractions src/CatalogService.Application/Common/Behaviors src/CatalogService.Application/Common/Exceptions src/CatalogService.Application/Categories src/CatalogService.Application/Brands src/CatalogService.Application/Products src/CatalogService.Infrastructure/Persistence/Configurations src/CatalogService.Infrastructure/Persistence/Migrations src/CatalogService.Api/Controllers tests/CatalogService.UnitTests tests/CatalogService.IntegrationTests tests/CatalogService.ApiTests
+```
+
+Created solution:
+
+```bash
+CatalogService.slnx
+```
+
+Catalog database migration SQL:
+
+```bash
+src/CatalogService.Infrastructure/Persistence/Migrations/202607210001_InitialCatalogSchema.mysql.sql
+```
+
+Catalog API Dockerfile:
+
+```bash
+src/CatalogService.Api/Dockerfile
+```
+
+Updated Docker Compose for separate databases:
+- `identity-mysql` -> database `identity_service`, host port `3307`.
+- `catalog-mysql` -> database `catalog_service`, host port `3308`.
+- `identity-api` -> `http://localhost:5294`.
+- `catalog-api` -> `http://localhost:5295`.
+- `web` depends on both APIs.
+
+Validate Docker MySQL mode:
+
+```bash
+docker compose config --quiet
+```
+
+Validate local MySQL mode:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local-mysql.yml config --quiet
+```
+
+Latest result:
+- Both Compose modes validate.
+
+Run Catalog tests:
+
+```bash
+dotnet test CatalogService.slnx -c Release
+```
+
+Latest result:
+- Catalog unit tests: `2` passed.
+- Catalog integration tests: `1` passed.
+- Catalog API tests: `1` passed.
+
+Attempted Docker rebuild/start:
+
+```bash
+docker compose up -d --build
+```
+
+Latest result:
+- Could not run because Docker daemon was not reachable: `Cannot connect to the Docker daemon at unix:///home/khuntunlar/.docker/desktop/docker.sock`.
+
+Run after Docker daemon/Desktop is started:
+
+```bash
+docker compose up -d --build
+```
+
+Apply Catalog schema manually if using local MySQL mode:
+
+```bash
+mysql --protocol=TCP -h 127.0.0.1 -P 3306 -u${MYSQL_USER:-khuntunlar} -p${MYSQL_PASSWORD:-khuntunlar2024} ${CATALOG_MYSQL_DATABASE:-catalog_service} < src/CatalogService.Infrastructure/Persistence/Migrations/202607210001_InitialCatalogSchema.mysql.sql
+```
+
+Verify Docker Catalog MySQL after Docker is running:
+
+```bash
+docker compose exec -T catalog-mysql mysql -u${MYSQL_USER:-khuntunlar} -p${MYSQL_PASSWORD:-khuntunlar2024} ${CATALOG_MYSQL_DATABASE:-catalog_service} -e "SHOW TABLES;"
+```
